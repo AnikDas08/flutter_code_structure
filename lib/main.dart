@@ -29,9 +29,9 @@ Future<void> init() async {
       LocalStorage.init(),
     ]);
 
-    Future.delayed(const Duration(milliseconds: 300), () {
-      SocketService.connect();
-    });
+    // Future.delayed(const Duration(milliseconds: 300), () {
+    //   SocketService.connect();
+    // });
   } catch (e, stack) {
     globalError(e, stack);
   }

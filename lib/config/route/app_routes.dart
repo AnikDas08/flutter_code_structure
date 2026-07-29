@@ -1,12 +1,12 @@
 import 'package:get/get.dart';
 
-import '../../features/auth/change_password/presentation/screen/change_password_screen.dart';
-import '../../features/auth/forgot password/presentation/screen/create_password.dart';
-import '../../features/auth/forgot password/presentation/screen/forgot_password.dart';
-import '../../features/auth/forgot password/presentation/screen/verify_screen.dart';
-import '../../features/auth/sign in/presentation/screen/sign_in_screen.dart';
-import '../../features/auth/sign up/presentation/screen/sign_up_screen.dart';
-import '../../features/auth/sign up/presentation/screen/verify_user.dart';
+import 'package:flutter_code_structure/features/auth/presentation/change_password/screen/change_password_screen.dart';
+import 'package:flutter_code_structure/features/auth/presentation/forgot_password/screen/create_password.dart';
+import 'package:flutter_code_structure/features/auth/presentation/forgot_password/screen/forgot_password.dart';
+import 'package:flutter_code_structure/features/auth/presentation/forgot_password/screen/verify_screen.dart';
+import 'package:flutter_code_structure/features/auth/presentation/sign_in/screen/sign_in_screen.dart';
+import 'package:flutter_code_structure/features/auth/presentation/sign_up/screen/sign_up_screen.dart';
+import 'package:flutter_code_structure/features/auth/presentation/sign_up/screen/verify_user.dart';
 import '../../features/message/presentation/screen/chat_screen.dart';
 import '../../features/message/presentation/screen/message_screen.dart';
 import '../../features/notifications/presentation/screen/notifications_screen.dart';
