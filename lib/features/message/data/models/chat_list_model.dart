@@ -1,7 +1,6 @@
 class ChatModel {
   final String id;
   final Participant participant;
-
   final LatestMessage latestMessage;
 
   const ChatModel({

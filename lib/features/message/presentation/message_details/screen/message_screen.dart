@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:flutter_code_structure/component/image/common_image.dart';
+import 'package:flutter_code_structure/component/text/common_text.dart';
+import 'package:flutter_code_structure/component/text_field/common_text_field.dart';
+import 'package:flutter_code_structure/features/message/data/models/chat_message_model.dart';
+import 'package:flutter_code_structure/utils/constants/app_string.dart';
+import 'package:flutter_code_structure/utils/extensions/extension.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:get/get.dart';
 
-import '../../../../component/image/common_image.dart';
-import '../../../../component/text/common_text.dart';
-import '../../../../component/text_field/common_text_field.dart';
-import '../../../../utils/constants/app_string.dart';
-import '../../../../../../utils/extensions/extension.dart';
-
-import '../../data/model/chat_message_model.dart';
 import '../controller/message_controller.dart';
 import '../widgets/chat_bubble_message.dart';
 
@@ -18,7 +17,7 @@ class MessageScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GetBuilder<MessageController>(
-      init: MessageController(), // create once
+      init: MessageController(),
       initState: (_) {
         final controller = MessageController.instance;
         final params = Get.parameters;
@@ -29,7 +28,6 @@ class MessageScreen extends StatelessWidget {
       },
       builder: (controller) {
         return Scaffold(
-          /// AppBar
           appBar: AppBar(
             titleSpacing: 0,
             title: Row(
@@ -47,14 +45,12 @@ class MessageScreen extends StatelessWidget {
                 12.width,
                 CommonText(
                   text: controller.name,
-                  fontWeight: .w700,
+                  fontWeight: FontWeight.w700,
                   fontSize: 18,
                 ),
               ],
             ),
           ),
-
-          /// Body
           body: controller.isLoading
               ? const Center(child: CircularProgressIndicator())
               : ListView.builder(
@@ -79,13 +75,11 @@ class MessageScreen extends StatelessWidget {
                     );
                   },
                 ),
-
-          /// Bottom input
           bottomNavigationBar: AnimatedPadding(
             padding: MediaQuery.of(context).viewInsets,
             duration: const Duration(milliseconds: 150),
             child: Padding(
-              padding: .only(left: 20.w, right: 20.w, bottom: 24.h),
+              padding: EdgeInsets.only(left: 20.w, right: 20.w, bottom: 24.h),
               child: CommonTextField(
                 controller: controller.messageController,
                 hintText: AppString.messageHere,

@@ -7,8 +7,8 @@ import 'package:flutter_code_structure/features/auth/presentation/forgot_passwor
 import 'package:flutter_code_structure/features/auth/presentation/sign_in/screen/sign_in_screen.dart';
 import 'package:flutter_code_structure/features/auth/presentation/sign_up/screen/sign_up_screen.dart';
 import 'package:flutter_code_structure/features/auth/presentation/sign_up/screen/verify_user.dart';
-import '../../features/message/presentation/screen/chat_screen.dart';
-import '../../features/message/presentation/screen/message_screen.dart';
+import 'package:flutter_code_structure/features/message/presentation/chat_list/screen/chat_screen.dart';
+import 'package:flutter_code_structure/features/message/presentation/message_details/screen/message_screen.dart';
 import '../../features/notifications/presentation/screen/notifications_screen.dart';
 import '../../features/onboarding_screen/onboarding_screen.dart';
 import '../../features/profile/presentation/screen/edit_profile.dart';

@@ -1,24 +1,22 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_code_structure/features/message/data/models/chat_message_model.dart';
+import 'package:flutter_code_structure/features/message/data/repositories/message_repository_impl.dart';
+import 'package:flutter_code_structure/features/message/domain/repositories/message_repository.dart';
+import 'package:flutter_code_structure/services/socket/socket_service.dart';
+import 'package:flutter_code_structure/services/storage/storage_services.dart';
+import 'package:flutter_code_structure/utils/app_snackbar.dart';
+import 'package:flutter_code_structure/utils/enum/enum.dart';
+import 'package:flutter_code_structure/utils/log/error_log.dart';
 import 'package:get/get.dart';
 
-import '../../../../services/api/api_client.dart';
-import '../../../../utils/log/error_log.dart';
-import '../../data/model/chat_message_model.dart';
-import '../../data/model/message_model.dart';
-
-import '../../../../config/api/api_end_point.dart';
-import '../../../../services/api/api_service.dart';
-import '../../../../services/socket/socket_service.dart';
-import '../../../../services/storage/storage_services.dart';
-import '../../../../utils/app_snackbar.dart';
-import '../../../../utils/enum/enum.dart';
-
 class MessageController extends GetxController {
-  /// Controller instance
-  static MessageController get instance => Get.find<MessageController>();
+  final MessageRepository _messageRepository;
 
-  final ApiClient apiClient = DioApiClient();
+  MessageController({MessageRepository? messageRepository})
+      : _messageRepository = messageRepository ?? MessageRepositoryImpl();
+
+  static MessageController get instance => Get.find<MessageController>();
 
   Status status = Status.completed;
   bool isLoading = false;
@@ -30,18 +28,15 @@ class MessageController extends GetxController {
   int currentIndex = 0;
   final List<ChatMessageModel> messages = [];
 
-  /// Scroll & text controller
   final ScrollController scrollController = ScrollController();
   final TextEditingController messageController = TextEditingController();
 
-  /// Init
   @override
   void onInit() {
     super.onInit();
     scrollController.addListener(_onScroll);
   }
 
-  /// Scroll listener for pagination
   void _onScroll() {
     if (scrollController.position.pixels >=
         scrollController.position.maxScrollExtent) {
@@ -49,7 +44,6 @@ class MessageController extends GetxController {
     }
   }
 
-  /// Fetch messages from API
   Future<void> getMessages() async {
     try {
       if (page == 1) {
@@ -58,29 +52,23 @@ class MessageController extends GetxController {
         update();
       }
 
-      final response = await apiClient.get(
-        '${ApiEndPoint.messages}?chatId=$chatId&page=$page&limit=15',
+      final messageEntities = await _messageRepository.getMessages(
+        chatId: chatId,
+        page: page,
+        limit: 15,
       );
 
-      if (response.statusCode != 200) {
-        throw Exception(response.message);
-      }
-
-      final Map<String, dynamic> data = response.data['data'] ?? {};
-      final Map<String, dynamic> attributes = data['attributes'] ?? {};
-      final List<dynamic> rawMessages = attributes['messages'] ?? [];
-
-      final newMessages = rawMessages.map((e) {
-        final model = MessageModel.fromJson(e);
-
-        return ChatMessageModel(
-          time: model.createdAt.toLocal(),
-          text: model.message,
-          image: model.sender.image,
-          isNotice: model.type == 'notice',
-          isMe: LocalStorage.user!.id == model.sender.id,
-        );
-      }).toList();
+      final newMessages = messageEntities
+          .map(
+            (e) => ChatMessageModel(
+              time: e.createdAt.toLocal(),
+              text: e.text,
+              image: e.senderImage,
+              isNotice: e.isNotice,
+              isMe: LocalStorage.user!.id == e.senderId,
+            ),
+          )
+          .toList();
 
       messages.addAll(newMessages);
 
@@ -88,14 +76,12 @@ class MessageController extends GetxController {
       status = Status.completed;
     } catch (e) {
       status = Status.error;
-
       AppSnackbar.error(title: 'Error', message: e.toString());
     } finally {
       update();
     }
   }
 
-  /// Load more messages (pagination)
   Future<void> loadMoreMessages() async {
     if (isMoreLoading || status == Status.loading) return;
     try {
@@ -110,12 +96,10 @@ class MessageController extends GetxController {
     }
   }
 
-  /// Send new message (socket)
   Future<void> sendMessage() async {
     final text = messageController.text.trim();
     if (text.isEmpty) return;
 
-    /// Add locally for instant UI
     messages.insert(
       0,
       ChatMessageModel(
@@ -128,33 +112,28 @@ class MessageController extends GetxController {
 
     update();
 
-    final body = {
-      'chat': chatId,
-      'message': text,
-      'sender': LocalStorage.user!.id,
-    };
+    _messageRepository.sendMessage(
+      chatId: chatId,
+      text: text,
+      senderId: LocalStorage.user!.id,
+    );
 
     messageController.clear();
-
-    SocketService.emitWithAck('add-new-message', body, (data) {
-      if (kDebugMode) {
-        debugPrint('Ack: $data');
-      }
-    });
   }
 
-  /// Listen socket new messages
   void listenMessage(String chatId) {
     SocketService.on('new-message::$chatId', (data) {
-      final model = MessageModel.fromJson(data);
+      final text = data['message'] ?? '';
+      final senderImage = data['sender']?['image'] ?? '';
+      final isNotice = data['type'] == 'notice';
 
       messages.insert(
         0,
         ChatMessageModel(
-          time: model.createdAt.toLocal(),
-          text: model.message,
-          image: model.sender.image,
-          isNotice: model.type == 'notice',
+          time: DateTime.now(),
+          text: text,
+          image: senderImage,
+          isNotice: isNotice,
           isMe: false,
         ),
       );
@@ -163,21 +142,18 @@ class MessageController extends GetxController {
     });
   }
 
-  /// Toggle emoji/input
   void toggleInput(int index) {
     currentIndex = index;
     isInputField = !isInputField;
     update();
   }
 
-  /// Refresh messages manually
   @override
   Future<void> refresh() async {
     page = 1;
     await getMessages();
   }
 
-  /// Dispose
   @override
   void onClose() {
     scrollController.dispose();

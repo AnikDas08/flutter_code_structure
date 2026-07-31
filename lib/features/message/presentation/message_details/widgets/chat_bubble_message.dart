@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_code_structure/component/image/common_image.dart';
+import 'package:flutter_code_structure/component/text/common_text.dart';
+import 'package:flutter_code_structure/utils/constants/app_colors.dart';
+import 'package:flutter_code_structure/utils/extensions/extension.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
-
-import '../../../../../utils/constants/app_colors.dart';
-import '../../../../component/image/common_image.dart';
-import '../../../../component/text/common_text.dart';
-import '../../../../utils/extensions/extension.dart';
 
 class ChatBubbleMessage extends StatelessWidget {
   final DateTime time;
@@ -26,44 +25,36 @@ class ChatBubbleMessage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bubbleColor = isMe ? AppColors.primaryColor : AppColors.white;
-
     final textColor = isMe ? AppColors.white : AppColors.black;
 
     return Padding(
-      padding: .symmetric(vertical: 6.h, horizontal: 12.w),
+      padding: EdgeInsets.symmetric(vertical: 6.h, horizontal: 12.w),
       child: Row(
-        mainAxisAlignment: isMe ? .end : .start,
-        crossAxisAlignment: .end,
+        mainAxisAlignment: isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          /// Avatar (only for others)
           if (!isMe)
             Padding(
               padding: EdgeInsets.only(right: 8.w),
               child: CommonImage(imageSrc: image, size: 36),
             ),
-
-          /// Bubble
           Flexible(
             child: GestureDetector(
               onTap: onTap,
               child: Container(
-                padding: .symmetric(horizontal: 14.w, vertical: 10.h),
+                padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 10.h),
                 constraints: BoxConstraints(maxWidth: Get.width * .7),
                 decoration: BoxDecoration(
                   color: bubbleColor,
-                  borderRadius: .circular(12.r),
+                  borderRadius: BorderRadius.circular(12.r),
                 ),
                 child: Column(
-                  crossAxisAlignment: .start,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    /// Message text
                     CommonText(text: text, color: textColor),
-
                     4.height,
-
-                    /// Time
                     Align(
-                      alignment: .bottomRight,
+                      alignment: Alignment.bottomRight,
                       child: CommonText(
                         text:
                             '${time.hour}:${time.minute.toString().padLeft(2, '0')}',

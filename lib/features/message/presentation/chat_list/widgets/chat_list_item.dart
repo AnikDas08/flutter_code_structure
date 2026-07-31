@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_code_structure/component/image/common_image.dart';
+import 'package:flutter_code_structure/component/text/common_text.dart';
+import 'package:flutter_code_structure/features/message/data/models/chat_list_model.dart';
+import 'package:flutter_code_structure/utils/extensions/extension.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import '../../../../component/image/common_image.dart';
-import '../../../../component/text/common_text.dart';
-import '../../../../utils/extensions/extension.dart';
-import '../../data/model/chat_list_model.dart';
 
 class ChatListItem extends StatelessWidget {
   final ChatModel item;
@@ -15,7 +15,7 @@ class ChatListItem extends StatelessWidget {
     final message = item.latestMessage.message;
 
     return Padding(
-      padding: .symmetric(horizontal: 12.w, vertical: 10.h),
+      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 10.h),
       child: Column(
         children: [
           Row(
@@ -26,28 +26,20 @@ class ChatListItem extends StatelessWidget {
                 borderRadius: 500,
               ),
               12.height,
-
-              /// Name + message
               Expanded(
                 child: Column(
-                  crossAxisAlignment: .start,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    /// Name
                     CommonText(
                       text: item.participant.fullName,
-                      fontWeight: .w600,
+                      fontWeight: FontWeight.w600,
                       fontSize: 16,
                     ),
-
                     4.height,
-
-                    /// Last message preview
                     CommonText(text: message, fontSize: 13, color: Colors.grey),
                   ],
                 ),
               ),
-
-              /// Optional time
               CommonText(
                 text: _formatTime(item.latestMessage.createdAt),
                 fontSize: 11,
@@ -55,17 +47,13 @@ class ChatListItem extends StatelessWidget {
               ),
             ],
           ),
-
           10.height,
-
-          /// Divider
           const Divider(height: 1),
         ],
       ),
     );
   }
 
-  /// Format message time
   String _formatTime(DateTime time) {
     final hour = time.hour;
     final minute = time.minute.toString().padLeft(2, '0');

@@ -1,30 +1,28 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_code_structure/features/message/data/models/chat_list_model.dart';
+import 'package:flutter_code_structure/features/message/data/repositories/message_repository_impl.dart';
+import 'package:flutter_code_structure/features/message/domain/repositories/message_repository.dart';
+import 'package:flutter_code_structure/services/socket/socket_service.dart';
+import 'package:flutter_code_structure/services/storage/storage_services.dart';
+import 'package:flutter_code_structure/utils/app_snackbar.dart';
+import 'package:flutter_code_structure/utils/enum/enum.dart';
 import 'package:get/get.dart';
 
-import '../../../../services/api/api_client.dart';
-import '../../data/model/chat_list_model.dart';
-import '../../../../config/api/api_end_point.dart';
-import '../../../../services/api/api_service.dart';
-import '../../../../services/socket/socket_service.dart';
-import '../../../../services/storage/storage_services.dart';
-import '../../../../utils/app_snackbar.dart';
-import '../../../../utils/enum/enum.dart';
-
 class ChatController extends GetxController {
+  final MessageRepository _messageRepository;
+
+  ChatController({MessageRepository? messageRepository})
+      : _messageRepository = messageRepository ?? MessageRepositoryImpl();
+
   Status status = Status.completed;
   bool isMoreLoading = false;
   int page = 1;
   final List<ChatModel> chats = [];
 
-  final ApiClient apiClient = DioApiClient();
-
-  /// Scroll controller
   final ScrollController scrollController = ScrollController();
 
-  /// Get controller instance
   static ChatController get instance => Get.find<ChatController>();
 
-  /// Init controller
   @override
   void onInit() {
     super.onInit();
@@ -33,7 +31,6 @@ class ChatController extends GetxController {
     scrollController.addListener(_onScroll);
   }
 
-  /// Scroll listener for pagination
   void _onScroll() {
     if (scrollController.position.pixels >=
         scrollController.position.maxScrollExtent) {
@@ -41,7 +38,6 @@ class ChatController extends GetxController {
     }
   }
 
-  /// Load more chats when reach bottom
   Future<void> moreChats() async {
     if (isMoreLoading || status == Status.loading) return;
 
@@ -55,7 +51,6 @@ class ChatController extends GetxController {
     }
   }
 
-  /// Fetch chats from API
   Future<void> getChats() async {
     return;
     try {
@@ -64,14 +59,25 @@ class ChatController extends GetxController {
         update();
       }
 
-      final response = await apiClient.get('${ApiEndPoint.chats}?page=$page');
+      final chatEntities = await _messageRepository.getChats(page: page);
+      final newChats = chatEntities
+          .map(
+            (e) => ChatModel(
+              id: e.id,
+              participant: Participant(
+                id: e.participantId,
+                fullName: e.participantName,
+                image: e.participantImage,
+              ),
+              latestMessage: LatestMessage(
+                id: '',
+                message: e.latestMessage,
+                createdAt: e.latestMessageTime,
+              ),
+            ),
+          )
+          .toList();
 
-      if (response.statusCode != 200) {
-        throw Exception(response.message);
-      }
-
-      final List<dynamic> data = response.data['chats'] ?? [];
-      final newChats = data.map((e) => ChatModel.fromJson(e)).toList();
       chats.addAll(newChats);
       page++;
       status = Status.completed;
@@ -83,7 +89,6 @@ class ChatController extends GetxController {
     }
   }
 
-  /// Listen chat updates from socket
   void listenChat() {
     final userId = LocalStorage.user!.id;
     SocketService.on('update-chatlist::$userId', (data) {
@@ -96,14 +101,12 @@ class ChatController extends GetxController {
     });
   }
 
-  /// Refresh chats manually
   Future<void> refreshChats() async {
     page = 1;
     chats.clear();
     await getChats();
   }
 
-  /// Dispose controller
   @override
   void onClose() {
     scrollController.dispose();
